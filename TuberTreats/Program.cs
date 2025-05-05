@@ -112,10 +112,10 @@ app.MapGet("/api/tuberorders/{id}", (int id) =>
 
     TuberDriver driver = tuberDrivers.FirstOrDefault(d => d.Id == order.TuberDriverId);
 
-    //get all tt's (i.e., join table) instances w/ matching order id
-    List<TuberTopping> orderToppings = tuberToppings.Where(tt => tt.TuberOrderId == order.Id).ToList();
+    //get all tt ids (from matching join table)
+    List<int> toppingIds = tuberToppings.Where(tt => tt.TuberOrderId == order.Id).Select(tt => tt.ToppingId).ToList();
     //all topping instances based on toppingids from join table
-    List<Topping> toppingList = toppings.Where(t => orderToppings.Any(ot => ot.ToppingId == t.Id)).ToList();
+    List<Topping> toppingsForOrder = toppings.Where(t => toppingIds.Contains(t.Id)).ToList();
 
     return Results.Ok(
         new TuberOrderDTO
@@ -136,7 +136,7 @@ app.MapGet("/api/tuberorders/{id}", (int id) =>
                 Id = driver.Id,
                 Name = driver.Name
             } : null,
-            Toppings = toppingList.Select(t => new ToppingDTO
+            Toppings = toppingsForOrder.Select(t => new ToppingDTO
             {
                 Id = t.Id,
                 Name = t.Name
